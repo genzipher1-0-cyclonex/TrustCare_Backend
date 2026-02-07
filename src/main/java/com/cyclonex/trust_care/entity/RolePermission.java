@@ -12,11 +12,11 @@ public class RolePermission {
     private int id;
 
     @OneToOne
-    @Column(name = "role_id")
+    @JoinColumn(name = "role_id")
     private int roleId;
 
     @OneToOne
-    @Column(name = "permission_id")
+    @JoinColumn(name = "permission_id")
     private int permissionId;
 
     public int getId() {
