@@ -4,6 +4,7 @@ import com.cyclonex.trust_care.entity.AuditLog;
 import com.cyclonex.trust_care.service.AuditLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/audit_log")
+@PreAuthorize("hasRole('ADMIN')")
 public class AuditLogController {
 
     private final AuditLogService auditLogService;
