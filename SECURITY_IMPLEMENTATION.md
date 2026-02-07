@@ -4,11 +4,14 @@ This document describes the complete security implementation for the Trust Care 
 
 ## Architecture Overview
 
-The security layer consists of three main components:
+The security layer consists of six main components:
 
 1. **Role-Based Access Control (RBAC)** - Dynamic permissions from database
 2. **JWT Authentication Filter** - Token validation and SecurityContext population
 3. **Method-Level Security** - @PreAuthorize annotations on endpoints
+4. **Audit Logging with AOP** - Automatic logging of CREATE/UPDATE/DELETE operations
+5. **AES Encryption for Medical Data** - Encryption of sensitive medical information
+6. **Request ID Generation and Propagation** - UUID-based request tracking
 
 ## 1. Role-Based Access Control (RBAC)
 
