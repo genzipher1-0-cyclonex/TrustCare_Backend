@@ -21,9 +21,9 @@ Thumbs.db
 .git/
 .gitignore
 
-# Logs
-*.log
+# Environment
+.env
+.env.*
 
-# Other
 README.md
 HELP.md
