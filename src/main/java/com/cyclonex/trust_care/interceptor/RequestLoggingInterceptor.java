@@ -43,8 +43,8 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
         User user = null;
 
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
-            String username = authentication.getName();
-            user = userRepository.findByUsername(username);
+            String email = authentication.getName();
+            user = userRepository.findByEmail(email);
         }
 
         RequestLog requestLog = new RequestLog();

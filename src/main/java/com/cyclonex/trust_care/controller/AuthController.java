@@ -46,7 +46,7 @@ public class AuthController {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            authRequest.getUsername(),
+                            authRequest.getEmail(),
                             authRequest.getPassword()
                     )
             );
@@ -55,26 +55,27 @@ public class AuthController {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String token = jwtTokenProvider.generateToken(userDetails);
 
-            User user = userRepository.findByUsername(authRequest.getUsername());
+            User user = userRepository.findByEmail(authRequest.getEmail());
             String roleName = user.getRole() != null ? user.getRole().getRoleName() : "USER";
 
-            return ResponseEntity.ok(new AuthResponse(token, user.getUsername(), roleName));
+            return ResponseEntity.ok(new AuthResponse(token, user.getEmail(), roleName));
         } catch (Exception e) {
-            return ResponseEntity.status(401).body("Invalid username or password");
+            return ResponseEntity.status(401).body("Invalid email or password");
         }
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
         try {
-            // Check if username already exists
-            if (userRepository.findByUsername(registerRequest.getUsername()) != null) {
-                return ResponseEntity.badRequest().body("Username already exists");
+            // Check if email already exists
+            if (userRepository.findByEmail(registerRequest.getEmail()) != null) {
+                return ResponseEntity.badRequest().body("Email already exists");
             }
 
             // Create new user
             User user = new User();
             user.setUsername(registerRequest.getUsername());
+            user.setEmail(registerRequest.getEmail());
             user.setPasswordHash(passwordEncoder.encode(registerRequest.getPassword()));
             user.setStatus("active");
 
@@ -97,8 +98,8 @@ public class AuthController {
     public ResponseEntity<?> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username);
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email);
             return ResponseEntity.ok(user);
         }
         return ResponseEntity.status(401).body("Not authenticated");
