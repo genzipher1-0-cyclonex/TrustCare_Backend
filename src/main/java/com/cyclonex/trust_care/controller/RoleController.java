@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/roles")
+@RequestMapping("/role")
 public class RoleController {
 
     private final RoleService roleService;
@@ -19,8 +19,8 @@ public class RoleController {
         this.roleService = roleService;
     }
 
-    @GetMapping("{roleName}")
-    public Role getRoleByName(@PathVariable String roleName) {
-        return roleService.getRoleByName(roleName);
+    @GetMapping("{name}")
+    public Role getRoleByName(@PathVariable String name) {
+        return roleService.getRoleByName(name);
     }
 }

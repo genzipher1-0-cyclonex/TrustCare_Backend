@@ -21,10 +21,6 @@ public class PatientService {
         return patientRepository.findByUser_Id(userId);
     }
 
-    public Patient getPatientByEmail(String email) {
-        return patientRepository.findByEmail(email);
-    }
-
     public List<Patient> getAllPatients() {
         return patientRepository.findAll();
     }

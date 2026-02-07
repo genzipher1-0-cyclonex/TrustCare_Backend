@@ -3,7 +3,7 @@ package com.cyclonex.trust_care.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "admins")
+@Table(name = "admin")
 public class Admin {
 
     @Id

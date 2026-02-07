@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/role-permissions")
+@RequestMapping("/role_permission")
 public class RolePermissionController {
 
     private final RolePermissionService rolePermissionService;

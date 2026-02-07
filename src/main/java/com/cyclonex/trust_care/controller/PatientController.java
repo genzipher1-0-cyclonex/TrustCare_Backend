@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/patients")
+@RequestMapping("/patient")
 public class PatientController {
 
     private final PatientService patientService;
@@ -21,11 +21,6 @@ public class PatientController {
     @GetMapping("/user/{userId}")
     public Patient getPatientByUserId(@PathVariable int userId) {
         return patientService.getPatientByUserId(userId);
-    }
-
-    @GetMapping("/email/{email}")
-    public Patient getPatientByEmail(@PathVariable String email) {
-        return patientService.getPatientByEmail(email);
     }
 
     @GetMapping
