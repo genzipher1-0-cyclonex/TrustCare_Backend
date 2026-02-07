@@ -28,7 +28,10 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        request.setAttribute("requestId", UUID.randomUUID().toString());
+        String requestId = UUID.randomUUID().toString();
+        request.setAttribute("requestId", requestId);
+        // Add request ID to response header for client tracking
+        response.setHeader("X-Request-ID", requestId);
         return true;
     }
 

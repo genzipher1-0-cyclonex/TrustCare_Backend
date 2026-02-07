@@ -25,6 +25,9 @@ public class AuditLog {
     @Column(name = "timestamp")
     private LocalDateTime timestamp;
 
+    @Column(name = "request_id")
+    private String requestId;
+
     @PrePersist
     protected void onCreate() {
         timestamp = LocalDateTime.now();
@@ -68,5 +71,13 @@ public class AuditLog {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
     }
 }

@@ -29,14 +29,19 @@ public class AuditLogService {
     }
 
     public void logAction(String action, String resource) {
+        logAction(action, resource, null);
+    }
+
+    public void logAction(String action, String resource, String requestId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
         AuditLog auditLog = new AuditLog();
         auditLog.setAction(action);
         auditLog.setResource(resource);
+        auditLog.setRequestId(requestId);
         
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
-            User user = userRepository.findByUsername(authentication.getName());
+            User user = userRepository.findByEmail(authentication.getName());
             auditLog.setUser(user);
         }
         
