@@ -15,14 +15,10 @@ public class EncryptionService {
     private static final String ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES/ECB/PKCS5Padding";
 
-    @Value("${encryption.secret.key:YourSecretKeyForEncryptionMustBe32Bytes!}")
+    @Value("${encryption.secret.key}")
     private String secretKeyString;
 
-    /**
-     * Encrypts the given plain text using AES encryption
-     * @param plainText The text to encrypt
-     * @return Base64 encoded encrypted text
-     */
+    // Encrypt the given plain text using AES encryption
     public String encrypt(String plainText) {
         try {
             if (plainText == null || plainText.isEmpty()) {
@@ -36,15 +32,11 @@ public class EncryptionService {
             byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
             return Base64.getEncoder().encodeToString(encryptedBytes);
         } catch (Exception e) {
-            throw new RuntimeException("Error encrypting data", e);
+            throw new IllegalArgumentException("Error encrypting data", e);
         }
     }
 
-    /**
-     * Decrypts the given encrypted text using AES decryption
-     * @param encryptedText The Base64 encoded encrypted text
-     * @return Decrypted plain text
-     */
+    // Decrypt the given encrypted text using AES decryption
     public String decrypt(String encryptedText) {
         try {
             if (encryptedText == null || encryptedText.isEmpty()) {
@@ -59,14 +51,11 @@ public class EncryptionService {
             byte[] decryptedBytes = cipher.doFinal(decodedBytes);
             return new String(decryptedBytes);
         } catch (Exception e) {
-            throw new RuntimeException("Error decrypting data", e);
+            throw new IllegalArgumentException("Error decrypting data", e);
         }
     }
 
-    /**
-     * Gets the secret key for encryption/decryption
-     * In production, this should be loaded from a secure vault or environment variable
-     */
+    // Get the secret key from the configured string, ensuring it is 32 bytes for AES-256
     private SecretKey getSecretKey() {
         try {
             // Ensure the key is exactly 32 bytes for AES-256
@@ -76,14 +65,11 @@ public class EncryptionService {
             
             return new SecretKeySpec(normalizedKey, ALGORITHM);
         } catch (Exception e) {
-            throw new RuntimeException("Error creating secret key", e);
+            throw new IllegalArgumentException("Error creating secret key", e);
         }
     }
 
-    /**
-     * Generates a new random AES key (for initial setup)
-     * Use this method to generate a secure key and store it in environment variables
-     */
+    // Utility method to generate a new random AES key (for testing or key rotation purposes)
     public static String generateNewKey() {
         try {
             KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);

@@ -1,13 +1,14 @@
 package com.cyclonex.trust_care.controller;
 
-import com.cyclonex.trust_care.dto.AuthRequest;
-import com.cyclonex.trust_care.dto.AuthResponse;
-import com.cyclonex.trust_care.dto.RegisterRequest;
+import com.cyclonex.trust_care.dto.*;
 import com.cyclonex.trust_care.entity.Role;
 import com.cyclonex.trust_care.entity.User;
 import com.cyclonex.trust_care.repository.RoleRepository;
 import com.cyclonex.trust_care.repository.UserRepository;
 import com.cyclonex.trust_care.security.JwtTokenProvider;
+import com.cyclonex.trust_care.service.EmailService;
+import com.cyclonex.trust_care.service.OtpService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,46 +22,143 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-    public AuthController(
-            AuthenticationManager authenticationManager,
-            UserRepository userRepository,
-            RoleRepository roleRepository,
-            PasswordEncoder passwordEncoder,
-            JwtTokenProvider jwtTokenProvider
-    ) {
-        this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
+    @Autowired
+    private UserRepository userRepository;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private OtpService otpService;
+
+    @Autowired
+    private EmailService emailService;
+
+    /**
+     * Step 1: Initiate login - Verify credentials and send OTP to email
+     */
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<?> initiateLogin(@RequestBody AuthRequest authRequest) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
+            // Authenticate user credentials
+            authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             authRequest.getEmail(),
                             authRequest.getPassword()
                     )
             );
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String token = jwtTokenProvider.generateToken(userDetails);
-
+            // Get user details
             User user = userRepository.findByEmail(authRequest.getEmail());
-            String roleName = user.getRole() != null ? user.getRole().getRoleName() : "USER";
+            if (user == null) {
+                return ResponseEntity.status(401).body("User not found");
+            }
 
-            return ResponseEntity.ok(new AuthResponse(token, user.getEmail(), roleName));
+            // Check if user has email
+            if (user.getEmail() == null || user.getEmail().isEmpty()) {
+                return ResponseEntity.badRequest().body("User does not have an email address. Please contact administrator.");
+            }
+
+            // Generate OTP
+            String otp = otpService.generateOtp();
+            
+            // Store OTP
+            otpService.storeOtp(user.getUsername(), otp);
+            
+            // Send OTP to email
+            emailService.sendOtpEmail(user.getEmail(), otp, user.getUsername());
+            
+            // Return response
+            return ResponseEntity.ok(new LoginInitiateResponse(
+                    "OTP sent to your email. Please verify to complete login.",
+                    user.getUsername(),
+                    true,
+                    emailService.maskEmail(user.getEmail())
+            ));
+
         } catch (Exception e) {
             return ResponseEntity.status(401).body("Invalid email or password");
+        }
+    }
+
+    /**
+     * Step 2: Verify OTP and complete login - Return JWT token
+     */
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestBody OtpVerificationRequest request) {
+        try {
+            // Verify OTP
+            boolean isValid = otpService.verifyOtp(request.getUsername(), request.getOtp());
+            
+            if (!isValid) {
+                return ResponseEntity.status(401).body("Invalid or expired OTP");
+            }
+
+            // Get user details
+            User user = userRepository.findByUsername(request.getUsername());
+            if (user == null) {
+                return ResponseEntity.status(401).body("User not found");
+            }
+
+            // Generate JWT token
+            UserDetails userDetails = org.springframework.security.core.userdetails.User
+                    .withUsername(user.getEmail())
+                    .password(user.getPasswordHash())
+                    .authorities("ROLE_" + (user.getRole() != null ? user.getRole().getRoleName() : "USER"))
+                    .build();
+
+            String token = jwtTokenProvider.generateToken(userDetails);
+            String roleName = user.getRole() != null ? user.getRole().getRoleName() : "USER";
+
+            return ResponseEntity.ok(new AuthResponse(token, user.getUsername(), roleName));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error occurred during OTP verification: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Resend OTP to user's email
+     */
+    @PostMapping("/resend-otp")
+    public ResponseEntity<?> resendOtp(@RequestBody String username) {
+        try {
+            User user = userRepository.findByUsername(username);
+            if (user == null) {
+                return ResponseEntity.status(404).body("User not found");
+            }
+
+            if (user.getEmail() == null || user.getEmail().isEmpty()) {
+                return ResponseEntity.badRequest().body("User does not have an email address");
+            }
+
+            // Generate new OTP
+            String otp = otpService.generateOtp();
+            
+            // Store OTP
+            otpService.storeOtp(user.getUsername(), otp);
+            
+            // Send OTP to email
+            emailService.sendOtpEmail(user.getEmail(), otp, user.getUsername());
+            
+            return ResponseEntity.ok(new LoginInitiateResponse(
+                    "New OTP sent to your email",
+                    user.getUsername(),
+                    true,
+                    emailService.maskEmail(user.getEmail())
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error occurred while resending OTP: " + e.getMessage());
         }
     }
 
@@ -70,6 +168,11 @@ public class AuthController {
             // Check if email already exists
             if (userRepository.findByEmail(registerRequest.getEmail()) != null) {
                 return ResponseEntity.badRequest().body("Email already exists");
+            }
+
+            // Validate email
+            if (registerRequest.getEmail() == null || registerRequest.getEmail().isEmpty()) {
+                return ResponseEntity.badRequest().body("Email is required");
             }
 
             // Create new user
@@ -88,7 +191,10 @@ public class AuthController {
 
             userRepository.save(user);
 
-            return ResponseEntity.ok("User registered successfully");
+            // Send welcome email
+            emailService.sendRegistrationEmail(user.getEmail(), user.getUsername());
+
+            return ResponseEntity.ok("User registered successfully. You can now login with OTP verification.");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error occurred during registration: " + e.getMessage());
         }

@@ -8,6 +8,8 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,11 +21,15 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Component
 public class AuditLoggingAspect {
 
-    @Autowired
-    private AuditLogService auditLogService;
+    private static final Logger log = LoggerFactory.getLogger(AuditLoggingAspect.class);
+    private final AuditLogService auditLogService;
+    private final UserRepository userRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    public AuditLoggingAspect(AuditLogService auditLogService, UserRepository userRepository) {
+        this.auditLogService = auditLogService;
+        this.userRepository = userRepository;
+    }
 
     // Pointcut for all controller POST methods (CREATE operations)
     @Pointcut("execution(* com.cyclonex.trust_care.controller.*.*(..)) && " +
@@ -88,7 +94,7 @@ public class AuditLoggingAspect {
             
         } catch (Exception e) {
             // Log the exception but don't fail the operation
-            System.err.println("Error logging audit event: " + e.getMessage());
+            log.error("Error logging audit event: {}", e.getMessage());
         }
     }
 
