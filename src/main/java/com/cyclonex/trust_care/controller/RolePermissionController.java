@@ -3,12 +3,14 @@ package com.cyclonex.trust_care.controller;
 import com.cyclonex.trust_care.entity.RolePermission;
 import com.cyclonex.trust_care.service.RolePermissionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/role-permissions")
+@PreAuthorize("hasRole('ADMIN')")
 public class RolePermissionController {
 
     private final RolePermissionService rolePermissionService;
