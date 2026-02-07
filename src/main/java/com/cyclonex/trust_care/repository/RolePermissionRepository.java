@@ -8,6 +8,6 @@ import java.util.List;
 
 @Repository
 public interface RolePermissionRepository extends JpaRepository<RolePermission, Integer> {
-    List<RolePermission> findByRoleId(int roleId);
-    List<RolePermission> findByPermissionId(int permissionId);
+    List<RolePermission> findByRole_Id(int roleId);
+    List<RolePermission> findByPermission_Id(int permissionId);
 }

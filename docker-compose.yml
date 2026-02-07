@@ -34,14 +34,13 @@ services:
       - "8080:8080"
     environment:
       # Database Configuration
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/trust_care_db
-      SPRING_DATASOURCE_USERNAME: trust_care_user
-      SPRING_DATASOURCE_PASSWORD: trust_care_password
+      Database_Url: jdbc:postgresql://postgres:5432/trust_care_db
+      Database_Username: trust_care_user
+      Database_Password: trust_care_password
 
       # JPA Configuration
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
-      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
       SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
     depends_on:
       postgres:

@@ -11,13 +11,13 @@ public class RolePermission {
     @Column(name = "id")
     private int id;
 
-    @OneToOne
-    @JoinColumn(name = "role_id")
-    private int roleId;
+    @ManyToOne
+    @JoinColumn(name = "role_id", referencedColumnName = "id")
+    private Role role;
 
-    @OneToOne
-    @JoinColumn(name = "permission_id")
-    private int permissionId;
+    @ManyToOne
+    @JoinColumn(name = "permission_id", referencedColumnName = "id")
+    private Permission permission;
 
     public int getId() {
         return id;
@@ -27,19 +27,19 @@ public class RolePermission {
         this.id = id;
     }
 
-    public int getRoleId() {
-        return roleId;
+    public Role getRole() {
+        return role;
     }
 
-    public void setRoleId(int roleId) {
-        this.roleId = roleId;
+    public void setRole(Role role) {
+        this.role = role;
     }
 
-    public int getPermissionId() {
-        return permissionId;
+    public Permission getPermission() {
+        return permission;
     }
 
-    public void setPermissionId(int permissionId) {
-        this.permissionId = permissionId;
+    public void setPermission(Permission permission) {
+        this.permission = permission;
     }
 }

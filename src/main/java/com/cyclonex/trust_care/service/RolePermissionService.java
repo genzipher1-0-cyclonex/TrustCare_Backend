@@ -18,11 +18,11 @@ public class RolePermissionService {
     }
 
     public List<RolePermission> getPermissionsByRoleId(int roleId) {
-        return rolePermissionRepository.findByRoleId(roleId);
+        return rolePermissionRepository.findByRole_Id(roleId);
     }
 
     public List<RolePermission> getRolesByPermissionId(int permissionId) {
-        return rolePermissionRepository.findByPermissionId(permissionId);
+        return rolePermissionRepository.findByPermission_Id(permissionId);
     }
 
     public RolePermission saveRolePermission(RolePermission rolePermission) {
