@@ -1,10 +1,8 @@
 package com.cyclonex.trust_care.controller;
 
 import com.cyclonex.trust_care.dto.*;
-import com.cyclonex.trust_care.entity.Role;
-import com.cyclonex.trust_care.entity.User;
-import com.cyclonex.trust_care.repository.RoleRepository;
-import com.cyclonex.trust_care.repository.UserRepository;
+import com.cyclonex.trust_care.entity.*;
+import com.cyclonex.trust_care.repository.*;
 import com.cyclonex.trust_care.security.JwtTokenProvider;
 import com.cyclonex.trust_care.service.EmailService;
 import com.cyclonex.trust_care.service.OtpService;
@@ -42,6 +40,15 @@ public class AuthController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private AdminRepository adminRepository;
+
+    @Autowired
+    private DoctorRepository doctorRepository;
+
+    @Autowired
+    private PatientRepository patientRepository;
 
     /**
      * Step 1: Initiate login - Verify credentials and send OTP to email
@@ -189,7 +196,28 @@ public class AuthController {
             }
             user.setRole(role);
 
-            userRepository.save(user);
+            User savedUser = userRepository.save(user);
+
+            // Create role-specific record (Admin/Doctor/Patient)
+            String roleName = role.getRoleName().toUpperCase();
+            if (roleName.equals("ADMIN")) {
+                Admin admin = new Admin();
+                admin.setUser(savedUser);
+                admin.setAdminLevel("STANDARD"); // Default admin level
+                adminRepository.save(admin);
+            } else if (roleName.equals("DOCTOR")) {
+                Doctor doctor = new Doctor();
+                doctor.setUser(savedUser);
+                // Name and other details can be updated later via profile update
+                doctor.setName(savedUser.getUsername()); // Default to username
+                doctorRepository.save(doctor);
+            } else if (roleName.equals("PATIENT")) {
+                Patient patient = new Patient();
+                patient.setUser(savedUser);
+                // Name and other details can be updated later via profile update
+                patient.setName(savedUser.getUsername()); // Default to username
+                patientRepository.save(patient);
+            }
 
             // Send welcome email
             emailService.sendRegistrationEmail(user.getEmail(), user.getUsername());
