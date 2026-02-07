@@ -1,49 +1,51 @@
 -- TrustCare Database Schema
--- Created from ERD diagram
+-- Updated to match JPA Entity definitions
 
--- Role table
-CREATE TABLE IF NOT EXISTS role (
+-- Roles table (matches Role entity)
+CREATE TABLE IF NOT EXISTS roles (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE,
+    role_name VARCHAR(50) NOT NULL UNIQUE,
+    secret_key VARCHAR(255),
     description TEXT
 );
 
--- Permission table
-CREATE TABLE IF NOT EXISTS permission (
+-- Permissions table (matches Permission entity)
+CREATE TABLE IF NOT EXISTS permissions (
     id BIGSERIAL PRIMARY KEY,
     permission_name VARCHAR(100) NOT NULL UNIQUE,
     description TEXT
 );
 
--- Role_Permission junction table
-CREATE TABLE IF NOT EXISTS role_permission (
+-- Role_Permissions junction table (matches RolePermission entity)
+CREATE TABLE IF NOT EXISTS role_permissions (
+    id BIGSERIAL PRIMARY KEY,
     role_id BIGINT NOT NULL,
     permission_id BIGINT NOT NULL,
-    PRIMARY KEY (role_id, permission_id),
-    FOREIGN KEY (role_id) REFERENCES role(id) ON DELETE CASCADE,
-    FOREIGN KEY (permission_id) REFERENCES permission(id) ON DELETE CASCADE
+    UNIQUE(role_id, permission_id),
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+    FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
 );
 
--- User table
-CREATE TABLE IF NOT EXISTS "user" (
+-- Users table (matches User entity)
+CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role_id BIGINT,
     status VARCHAR(20) DEFAULT 'active',
-    FOREIGN KEY (role_id) REFERENCES role(id)
+    FOREIGN KEY (role_id) REFERENCES roles(id)
 );
 
--- Admin table
-CREATE TABLE IF NOT EXISTS admin (
+-- Admins table (matches Admin entity)
+CREATE TABLE IF NOT EXISTS admins (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL UNIQUE,
     admin_level VARCHAR(50),
-    FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Patient table
-CREATE TABLE IF NOT EXISTS patient (
+-- Patients table (matches Patient entity)
+CREATE TABLE IF NOT EXISTS patients (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL UNIQUE,
     first_name VARCHAR(100) NOT NULL,
@@ -53,17 +55,17 @@ CREATE TABLE IF NOT EXISTS patient (
     address TEXT,
     contact_number VARCHAR(20),
     email VARCHAR(100),
-    FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Doctor table
-CREATE TABLE IF NOT EXISTS doctor (
+-- Doctors table (matches Doctor entity)
+CREATE TABLE IF NOT EXISTS doctors (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL UNIQUE,
     name VARCHAR(200) NOT NULL,
     specialization VARCHAR(100),
     license_number VARCHAR(50) UNIQUE,
-    FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Inventory table
@@ -85,8 +87,8 @@ CREATE TABLE IF NOT EXISTS appointment (
     appointment_date TIMESTAMP NOT NULL,
     status VARCHAR(50) DEFAULT 'scheduled',
     notes TEXT,
-    FOREIGN KEY (patient_id) REFERENCES patient(id) ON DELETE CASCADE,
-    FOREIGN KEY (doctor_id) REFERENCES doctor(id) ON DELETE CASCADE
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
 );
 
 -- School_Record table
@@ -97,7 +99,7 @@ CREATE TABLE IF NOT EXISTS school_record (
     treatment_description TEXT,
     visit_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (patient_id) REFERENCES patient(id) ON DELETE CASCADE
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
 );
 
 -- Prescription table
@@ -110,8 +112,8 @@ CREATE TABLE IF NOT EXISTS prescription (
     dosage TEXT,
     instructions TEXT,
     status VARCHAR(50) DEFAULT 'active',
-    FOREIGN KEY (patient_id) REFERENCES patient(id) ON DELETE CASCADE,
-    FOREIGN KEY (doctor_id) REFERENCES doctor(id) ON DELETE CASCADE
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
 );
 
 -- Required_Labs table
@@ -126,10 +128,10 @@ CREATE TABLE IF NOT EXISTS required_labs (
 );
 
 -- Create indexes for frequently queried columns
-CREATE INDEX IF NOT EXISTS idx_user_username ON "user"(username);
-CREATE INDEX IF NOT EXISTS idx_user_role_id ON "user"(role_id);
-CREATE INDEX IF NOT EXISTS idx_patient_user_id ON patient(user_id);
-CREATE INDEX IF NOT EXISTS idx_doctor_user_id ON doctor(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_user_role_id ON users(role_id);
+CREATE INDEX IF NOT EXISTS idx_patient_user_id ON patients(user_id);
+CREATE INDEX IF NOT EXISTS idx_doctor_user_id ON doctors(user_id);
 CREATE INDEX IF NOT EXISTS idx_appointment_patient_id ON appointment(patient_id);
 CREATE INDEX IF NOT EXISTS idx_appointment_doctor_id ON appointment(doctor_id);
 CREATE INDEX IF NOT EXISTS idx_appointment_date ON appointment(appointment_date);
@@ -138,14 +140,14 @@ CREATE INDEX IF NOT EXISTS idx_prescription_doctor_id ON prescription(doctor_id)
 CREATE INDEX IF NOT EXISTS idx_school_record_patient_id ON school_record(patient_id);
 
 -- Insert default roles
-INSERT INTO role (name, description) VALUES 
+INSERT INTO roles (role_name, description) VALUES 
     ('ADMIN', 'System Administrator with full access'),
     ('DOCTOR', 'Medical Doctor with patient care access'),
     ('PATIENT', 'Patient with limited access to own records')
-ON CONFLICT (name) DO NOTHING;
+ON CONFLICT (role_name) DO NOTHING;
 
 -- Insert default permissions
-INSERT INTO permission (permission_name, description) VALUES 
+INSERT INTO permissions (permission_name, description) VALUES 
     ('USER_READ', 'Read user information'),
     ('USER_WRITE', 'Create and update user information'),
     ('USER_DELETE', 'Delete user accounts'),
@@ -164,25 +166,25 @@ ON CONFLICT (permission_name) DO NOTHING;
 
 -- Assign permissions to roles
 -- Admin gets all permissions
-INSERT INTO role_permission (role_id, permission_id)
+INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id 
-FROM role r, permission p 
-WHERE r.name = 'ADMIN'
+FROM roles r, permissions p 
+WHERE r.role_name = 'ADMIN'
 ON CONFLICT DO NOTHING;
 
 -- Doctor gets patient, appointment, and prescription permissions
-INSERT INTO role_permission (role_id, permission_id)
+INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id 
-FROM role r, permission p 
-WHERE r.name = 'DOCTOR' 
+FROM roles r, permissions p 
+WHERE r.role_name = 'DOCTOR' 
 AND p.permission_name IN ('PATIENT_READ', 'PATIENT_WRITE', 'APPOINTMENT_READ', 
                           'APPOINTMENT_WRITE', 'PRESCRIPTION_READ', 'PRESCRIPTION_WRITE')
 ON CONFLICT DO NOTHING;
 
 -- Patient gets read permissions only
-INSERT INTO role_permission (role_id, permission_id)
+INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id 
-FROM role r, permission p 
-WHERE r.name = 'PATIENT' 
+FROM roles r, permissions p 
+WHERE r.role_name = 'PATIENT' 
 AND p.permission_name IN ('PATIENT_READ', 'APPOINTMENT_READ', 'PRESCRIPTION_READ')
 ON CONFLICT DO NOTHING;

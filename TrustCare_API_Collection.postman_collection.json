@@ -1,0 +1,966 @@
+{
+	"info": {
+		"_postman_id": "trustcare-backend-api",
+		"name": "TrustCare Backend API",
+		"description": "Complete API collection for TrustCare Backend System with authentication and role-based access",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('jwt_token', jsonData.token);",
+									"    console.log('Token saved:', jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login with username and password. Token is automatically saved to collection variable."
+					},
+					"response": []
+				},
+				{
+					"name": "Register",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"newuser\",\n    \"password\": \"password123\",\n    \"roleName\": \"PATIENT\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Register a new user with role (ADMIN, DOCTOR, or PATIENT)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						},
+						"description": "Get currently authenticated user details"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for login, registration, and user info"
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Get all users (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by Username",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/admin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"admin"
+							]
+						},
+						"description": "Get user by username (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/id/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"id",
+								"1"
+							]
+						},
+						"description": "Get user by ID (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"newuser\",\n    \"passwordHash\": \"$2a$10$encodedpasswordhash\",\n    \"status\": \"active\",\n    \"role\": {\n        \"id\": 3\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Create a new user (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"updateduser\",\n    \"status\": \"active\",\n    \"role\": {\n        \"id\": 3\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"1"
+							]
+						},
+						"description": "Update user by ID (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"1"
+							]
+						},
+						"description": "Delete user by ID (ADMIN only)"
+					},
+					"response": []
+				}
+			],
+			"description": "User management endpoints (ADMIN access required)"
+		},
+		{
+			"name": "Admins",
+			"item": [
+				{
+					"name": "Get All Admins",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admins",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admins"
+							]
+						},
+						"description": "Get all admins (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Admin by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admins/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admins",
+								"1"
+							]
+						},
+						"description": "Get admin by ID (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Admin by User ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admins/user/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admins",
+								"user",
+								"1"
+							]
+						},
+						"description": "Get admin by user ID (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+1234567890\",\n    \"hireDate\": \"2024-01-15\",\n    \"user\": {\n        \"id\": 1\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admins",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admins"
+							]
+						},
+						"description": "Create a new admin (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Admin",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Smith\",\n    \"email\": \"john.smith@example.com\",\n    \"phone\": \"+1234567890\",\n    \"hireDate\": \"2024-01-15\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admins/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admins",
+								"1"
+							]
+						},
+						"description": "Update admin by ID (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Admin",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admins/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admins",
+								"1"
+							]
+						},
+						"description": "Delete admin by ID (ADMIN only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Admin management endpoints (ADMIN access required)"
+		},
+		{
+			"name": "Doctors",
+			"item": [
+				{
+					"name": "Get All Doctors",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/doctors",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"doctors"
+							]
+						},
+						"description": "Get all doctors (Accessible by ADMIN, DOCTOR, PATIENT)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doctor by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/doctors/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"doctors",
+								"1"
+							]
+						},
+						"description": "Get doctor by ID (Accessible by ADMIN, DOCTOR, PATIENT)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doctor by User ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/doctors/user/2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"doctors",
+								"user",
+								"2"
+							]
+						},
+						"description": "Get doctor by user ID (Accessible by ADMIN, DOCTOR)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doctor by License Number",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/doctors/license/LIC123456",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"doctors",
+								"license",
+								"LIC123456"
+							]
+						},
+						"description": "Get doctor by license number (Accessible by ADMIN, DOCTOR, PATIENT)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doctors by Specialization",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/doctors/specialization/Cardiology",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"doctors",
+								"specialization",
+								"Cardiology"
+							]
+						},
+						"description": "Get doctors by specialization (Accessible by ADMIN, DOCTOR, PATIENT)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Doctor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Dr. Jane\",\n    \"lastName\": \"Smith\",\n    \"email\": \"jane.smith@hospital.com\",\n    \"phone\": \"+1234567891\",\n    \"specialization\": \"Cardiology\",\n    \"licenseNumber\": \"LIC123456\",\n    \"hireDate\": \"2023-06-15\",\n    \"user\": {\n        \"id\": 2\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/doctors",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"doctors"
+							]
+						},
+						"description": "Create a new doctor (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Doctor",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Dr. Jane\",\n    \"lastName\": \"Smith\",\n    \"email\": \"jane.smith@hospital.com\",\n    \"phone\": \"+1234567891\",\n    \"specialization\": \"Pediatric Cardiology\",\n    \"licenseNumber\": \"LIC123456\",\n    \"hireDate\": \"2023-06-15\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/doctors/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"doctors",
+								"1"
+							]
+						},
+						"description": "Update doctor by ID (Accessible by ADMIN, DOCTOR)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Doctor",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/doctors/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"doctors",
+								"1"
+							]
+						},
+						"description": "Delete doctor by ID (ADMIN only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Doctor management endpoints with role-based access"
+		},
+		{
+			"name": "Patients",
+			"item": [
+				{
+					"name": "Get All Patients",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/patients",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"patients"
+							]
+						},
+						"description": "Get all patients (Accessible by ADMIN, DOCTOR)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Patient by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/patients/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"patients",
+								"1"
+							]
+						},
+						"description": "Get patient by ID (Accessible by ADMIN, DOCTOR, PATIENT)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Patient by User ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/patients/user/3",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"patients",
+								"user",
+								"3"
+							]
+						},
+						"description": "Get patient by user ID (Accessible by ADMIN, DOCTOR, PATIENT)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Patient by Email",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/patients/email/patient@example.com",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"patients",
+								"email",
+								"patient@example.com"
+							]
+						},
+						"description": "Get patient by email (Accessible by ADMIN, DOCTOR)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Patient",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Alice\",\n    \"lastName\": \"Johnson\",\n    \"email\": \"alice.johnson@example.com\",\n    \"phone\": \"+1234567892\",\n    \"dateOfBirth\": \"1990-05-15\",\n    \"address\": \"123 Main St, City, State\",\n    \"emergencyContact\": \"+1234567893\",\n    \"user\": {\n        \"id\": 3\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/patients",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"patients"
+							]
+						},
+						"description": "Create a new patient (Accessible by ADMIN, DOCTOR)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Patient",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Alice\",\n    \"lastName\": \"Johnson\",\n    \"email\": \"alice.j@example.com\",\n    \"phone\": \"+1234567892\",\n    \"dateOfBirth\": \"1990-05-15\",\n    \"address\": \"456 Oak Ave, City, State\",\n    \"emergencyContact\": \"+1234567893\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/patients/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"patients",
+								"1"
+							]
+						},
+						"description": "Update patient by ID (Accessible by ADMIN, DOCTOR, PATIENT)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Patient",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/patients/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"patients",
+								"1"
+							]
+						},
+						"description": "Delete patient by ID (ADMIN only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Patient management endpoints with role-based access"
+		},
+		{
+			"name": "Roles",
+			"item": [
+				{
+					"name": "Get Role by Name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/roles/ADMIN",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"roles",
+								"ADMIN"
+							]
+						},
+						"description": "Get role by name (ADMIN only). Available roles: ADMIN, DOCTOR, PATIENT"
+					},
+					"response": []
+				}
+			],
+			"description": "Role management endpoints (ADMIN access required)"
+		},
+		{
+			"name": "Permissions",
+			"item": [
+				{
+					"name": "Get All Permissions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"permissions"
+							]
+						},
+						"description": "Get all permissions (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Permission by Name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/permissions/READ",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"permissions",
+								"READ"
+							]
+						},
+						"description": "Get permission by name (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Permission",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"permissionName\": \"CREATE_APPOINTMENT\",\n    \"description\": \"Permission to create appointments\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"permissions"
+							]
+						},
+						"description": "Create a new permission (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Permission",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/permissions/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"permissions",
+								"1"
+							]
+						},
+						"description": "Delete permission by ID (ADMIN only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Permission management endpoints (ADMIN access required)"
+		},
+		{
+			"name": "Role Permissions",
+			"item": [
+				{
+					"name": "Get All Role Permissions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/role-permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"role-permissions"
+							]
+						},
+						"description": "Get all role-permission mappings (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Permissions by Role",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/role-permissions/role/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"role-permissions",
+								"role",
+								"1"
+							]
+						},
+						"description": "Get all permissions for a specific role (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Roles by Permission",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/role-permissions/permission/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"role-permissions",
+								"permission",
+								"1"
+							]
+						},
+						"description": "Get all roles that have a specific permission (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Role Permission",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"role\": {\n        \"id\": 2\n    },\n    \"permission\": {\n        \"id\": 3\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/role-permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"role-permissions"
+							]
+						},
+						"description": "Assign a permission to a role (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Role Permission",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/role-permissions/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"role-permissions",
+								"1"
+							]
+						},
+						"description": "Remove a role-permission mapping (ADMIN only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Role-Permission mapping endpoints (ADMIN access required)"
+		}
+	]
+}
